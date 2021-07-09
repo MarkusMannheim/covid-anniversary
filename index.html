@@ -1,123 +1,55 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-155991615-1"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag("js", new Date());
-      gtag("config", "UA-155991615-1");
-    </script>
-
-    <!-- my stuff -->
     <meta charset="utf-8">
-    <title>Canberra's COVID-19-free year</title>
+    <title>Holding page for interactive</title>
     <meta name="author" content="Markus Mannheim">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- initial scripts -->
-    <script src="./resources/d3.v6.min.js"></script>
-    <script src="./resources/topojson.v3.min.js"></script>
-    <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js"></script>
-    <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css" rel="stylesheet">
-    <link href="./resources/style.css" rel="stylesheet">
     <link href="./resources/abcLogo64.png" rel="icon">
-  </head>
 
+    <style>
+      /* colours
+      blue: #009CBF
+      orange: #F75F00
+      green: #00A388
+      --tint-1: #333;
+      --tint-2: #666;
+      --tint-3: #999;
+      --tint-4: #ccc;
+      --tint-5: #e6e6e6;
+      --tint-6: #f2f2f2;
+       */
+      @font-face {
+        font-family: "ABCSans Black";
+        font-style: normal;
+        font-weight: normal;
+        src: local("ABCSans Black"), url("./abcsans-black.woff") format("woff");
+      }
+      body {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #ccc;
+        padding: 2rem;
+      }
+      p {
+        font-size: 1.5rem;
+        font-family: "ABCSans Black", "Arial Black", sans-serif;
+        color: white;
+        text-shadow: 2px 2px 3px #333;
+        text-align: center;
+      }
+      @media only screen and (max-width: 500px) {
+        font-size: 1.25rem;
+      }
+    </style>
+  </head>
+    <p>interactive element goes here</p>
   <body>
-    <div id="map"></div>
-    <div id="footer">
-      <div id="stayKey" class="legend">
-        <div class="box"></div>
-        <div class="label">stay-at-home orders</div>
-      </div>
-      <!-- <div id="watchKey" class="legend">
-        <div class="box"></div>
-        <div class="label">watch and assess</div>
-      </div> -->
-    </div>
-    <script>
-      // load LGA data
-      d3.json("./data/lgaMap.topojson")
-        .then(function(data) {
-          lgaData = topojson.feature(data, data.objects.lgas);
-          // watchData = {
-          //   type: "FeatureCollection",
-          //   features: lgaData
-          //     .features.filter(function(d) {
-          //       return d.properties.class == "watch";
-          //     })
-          // };
-          // stayData = {
-          //   type: "FeatureCollection",
-          //   features: lgaData
-          //     .features.filter(function(d) {
-          //       return d.properties.class == "stay";
-          //     })
-          // };
-          // set up MapBox engine
-          mapboxgl.accessToken = "pk.eyJ1IjoibmV3cy1vbjFpbmUiLCJhIjoiR3FlZFZlVSJ9._30EFE9XYhQitqf4gzRG-g";
-          map = new mapboxgl.Map({
-            container: "map",
-            attributionControl: false,
-            style: "mapbox://styles/mapbox/dark-v10",
-            center: [149.126944, -35.293056],
-            zoom: 8
-          });
-          map.on("load", function() {
-            // add navigation and custom attribution
-            map.addControl(new mapboxgl.NavigationControl())
-              .addControl(new mapboxgl.AttributionControl({
-                compact: true,
-                customAttribution: "ACT Health (COVID-19 advice), ABS (LGA boundaries)"
-              }))
-              // add GeoJSON
-              // .addSource("watchSource", {
-              //   type: "geojson",
-              //   data: watchData
-              // })
-              // .addLayer({
-              //   id: "watch",
-              //   type: "fill",
-              //   source: "watchSource",
-              //   paint: {
-              //     "fill-color": "#01CFFF",
-              //     "fill-opacity": .5,
-              //     "fill-outline-color": "white"
-              //   }
-              // })
-              .addSource("staySource", {
-                type: "geojson",
-                // data: stayData
-                data: lgaData
-              })
-              .addLayer({
-                id: "stay",
-                type: "fill",
-                source: "staySource",
-                paint: {
-                  "fill-color": "#FF6100",
-                  "fill-opacity": .5,
-                  "fill-outline-color": "white"
-                }
-              });
-            // fade in
-            d3.select("body")
-              .transition()
-                .duration(500)
-                .style("opacity", 1);
-            // transition to LGAs
-            d3.timeout(function() {
-              bounds = d3.geoBounds(lgaData);
-              map.fitBounds(bounds, {
-                padding: 50,
-                duration: 3500,
-                essential: true
-              });
-            }, 1000);
-          });
-        });
-    </script>
   </body>
 </html>

@@ -54,43 +54,6 @@ body {
   color: white;
   font-size: .9rem;
 }
-.legend {
-  display: flex;
-  margin-top: .25rem;
-}
-.legend:first-child {
-  margin-top: 0;
-}
-.label {
-  line-height: 1rem;
-}
-.box {
-  width: 1rem;
-  height: 1rem;
-  border: solid .5px white;
-}
-.box:first-child {
-  margin-right: .25rem;
-}
-#footer {
-  background: #333;
-  padding: .25rem;
-  box-shadow: 2px 2px 3px white;
-  box-sizing: border-box;
-}
-#stayKey .box {
-  /* background: #FF6100; */
-  background: #01CFFF;
-}
-#watchKey .box {
-  background: #01CFFF;
-}
-@media only screen and (min-width: 650px) {
-  #footer {
-    bottom: 2rem;
-    left: 2rem;
-  }
-  body {
-    bottom: 0;
-  }
+@media only screen and (min-width: 500px) {
+
 }
