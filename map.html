@@ -27,79 +27,47 @@
 
   <body>
     <div id="map"></div>
-    <div id="footer">
-      <div id="stayKey" class="legend">
-        <div class="box"></div>
-        <div class="label">stay-at-home orders</div>
-      </div>
-      <!-- <div id="watchKey" class="legend">
-        <div class="box"></div>
-        <div class="label">watch and assess</div>
-      </div> -->
-    </div>
+    <div id="footer"></div>
     <script>
       // load LGA data
-      d3.json("./data/lgaMap.topojson")
+      d3.json("./data/lga.topojson")
         .then(function(data) {
-          lgaData = topojson.feature(data, data.objects.lgas);
-          // watchData = {
-          //   type: "FeatureCollection",
-          //   features: lgaData
-          //     .features.filter(function(d) {
-          //       return d.properties.class == "watch";
-          //     })
-          // };
-          // stayData = {
-          //   type: "FeatureCollection",
-          //   features: lgaData
-          //     .features.filter(function(d) {
-          //       return d.properties.class == "stay";
-          //     })
-          // };
+          lgaData = topojson.feature(data, data.objects.areas);
+          bounds = d3.geoBounds(lgaData);
+          // temp test
+          lgaData.features.forEach(function(d) {
+            d.properties.height = d3.max(d.properties.data) * 5000;
+            console.log(d.properties);
+            // d.properties.colour = "rgba(255, 97, 0, " + (d3.max(d.properties.height) / 131) + ")";
+          });
           // set up MapBox engine
           mapboxgl.accessToken = "pk.eyJ1IjoibmV3cy1vbjFpbmUiLCJhIjoiR3FlZFZlVSJ9._30EFE9XYhQitqf4gzRG-g";
           map = new mapboxgl.Map({
             container: "map",
             attributionControl: false,
-            style: "mapbox://styles/mapbox/dark-v10",
-            center: [149.126944, -35.293056],
-            zoom: 8
+            style: "mapbox://styles/mapbox/light-v10",
+            center: [134.354806, -25.610111],
+            pitch: 0,
+            bearing: 0,
+            zoom: (document.body.getBoundingClientRect().width < 500 ? 2 : 3)
           });
           map.on("load", function() {
             // add navigation and custom attribution
-            map.addControl(new mapboxgl.NavigationControl())
-              .addControl(new mapboxgl.AttributionControl({
+            map.addControl(new mapboxgl.AttributionControl({
                 compact: true,
-                customAttribution: "ACT Health (COVID-19 advice), ABS (LGA boundaries)"
+                customAttribution: "ACT Health, NSW Health, ABS (LGA boundaries)"
               }))
-              // add GeoJSON
-              // .addSource("watchSource", {
-              //   type: "geojson",
-              //   data: watchData
-              // })
-              // .addLayer({
-              //   id: "watch",
-              //   type: "fill",
-              //   source: "watchSource",
-              //   paint: {
-              //     "fill-color": "#01CFFF",
-              //     "fill-opacity": .5,
-              //     "fill-outline-color": "white"
-              //   }
-              // })
-              .addSource("staySource", {
+              .addSource("lgaSource", {
                 type: "geojson",
-                // data: stayData
                 data: lgaData
               })
               .addLayer({
-                id: "stay",
-                type: "fill",
-                source: "staySource",
+                id: "lga",
+                type: "fill-extrusion",
+                source: "lgaSource",
                 paint: {
-                  "fill-color": "#FF6100",
-                  "fill-opacity": .5,
-                  "fill-outline-color": "white"
+                  "fill-extrusion-color": "blue",
+                  "fill-extrusion-height": ["get", "height"]
                 }
               });
             // fade in
@@ -109,10 +77,14 @@
                 .style("opacity", 1);
             // transition to LGAs
             d3.timeout(function() {
-              bounds = d3.geoBounds(lgaData);
+
               map.fitBounds(bounds, {
-                padding: 50,
-                duration: 3500,
+                padding: {
+                    right: -100, left: -300
+                  },
+                pitch: 60,
+                bearing: 30,
+                duration: 3000,
                 essential: true
               });
             }, 1000);
