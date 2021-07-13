@@ -1,5 +1,6 @@
 const d3 = require("d3"),
-      fs = require("fs");
+      fs = require("fs"),
+      topojson = require("topojson");
 
 fs.readFile("./areas.geojson", "utf8", function(error, data) {
   if (error) throw error;
@@ -61,8 +62,48 @@ fs.readFile("./areas.geojson", "utf8", function(error, data) {
       }
     });
 
-    fs.writeFile("./lga.geojson", JSON.stringify(finalData), function(error) {
-      console.log("lga.geojson written");
+    heightRange = d3.scaleLinear()
+      .range([0, 100000])
+      .domain([0, d3.max(finalData.features, function(d) {
+        return d3.max(d.properties.data);
+      })]);
+
+    // colourRange = d3.scaleThreshold(d3.schemeReds[9])
+    //   .domain(d3.range(0, 10).map(function(d) { return d * heightRange.domain()[1] / 9; }));
+
+    abcColours = ["#EAF2DC", "#BFECCF", "#9BDED3", "#7ACFD4", "#5EC0CE", "#3FB2C6", "#23A3BC", "#188CAD", "#0E75A0", "#085B96", "#02408D", "#002775", "#00104B"];
+    colourRange = d3.scaleThreshold()
+      .range(abcColours)
+      .domain(abcColours.map(function(d, i) {
+        return i / (abcColours.length - 1) * heightRange.domain()[1];
+      }));
+
+    mapData = {
+      type: "FeatureCollection",
+      features: []
+    };
+
+    finalData.features.map(function(d) {
+      let heights = d.properties.data.map(function(e) { return Math.round(heightRange(e)); });
+      let colours = d.properties.data.map(function(e) { return (e == 0) ? 0 : colourRange(e); });
+      mapData.features.push({
+        type: "Feature",
+        geometry: d.geometry,
+        properties: {
+          name: d.properties.name,
+          heights: heights,
+          colours: colours
+        }
+      });
+    });
+
+    topology = topojson.topology({ areas: mapData });
+    topology = topojson.presimplify(topology);
+    topology = topojson.simplify(topology, 1e-5);
+    topology = topojson.quantize(topology, 1e4);
+
+    fs.writeFile("./lga.topojson", JSON.stringify(topology), function(error) {
+      console.log("lga.topojson written");
     });
   });
 });
