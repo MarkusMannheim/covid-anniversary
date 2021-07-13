@@ -30,44 +30,44 @@
     <div id="footer"></div>
     <script>
       // load LGA data
-      d3.json("./data/lga.topojson")
+      d3.json("./data/lga.topojson?accessKey=" + Math.floor(Math.random()*9000) + 1000)
         .then(function(data) {
           lgaData = topojson.feature(data, data.objects.areas);
-          bounds = d3.geoBounds(lgaData);
-          // temp test
-          lgaData.features.forEach(function(d) {
-            d.properties.height = d3.max(d.properties.data) * 5000;
-            console.log(d.properties);
-            // d.properties.colour = "rgba(255, 97, 0, " + (d3.max(d.properties.height) / 131) + ")";
-          });
+          boundsAustralia = [[113.338953078, -43.6345972634], [153.569469029, -10.6681857235]];
+          boundsMap = [[148.76278998500004,-35.92076221499997], [151.63054702400007,-33.04371900799998]];
+
+          mapData = {
+            type: "FeatureCollection",
+            features: []
+          };
+
           // set up MapBox engine
           mapboxgl.accessToken = "pk.eyJ1IjoibmV3cy1vbjFpbmUiLCJhIjoiR3FlZFZlVSJ9._30EFE9XYhQitqf4gzRG-g";
           map = new mapboxgl.Map({
             container: "map",
             attributionControl: false,
-            style: "mapbox://styles/mapbox/light-v10",
+            style: "mapbox://styles/mapbox/dark-v10",
             center: [134.354806, -25.610111],
             pitch: 0,
             bearing: 0,
-            zoom: (document.body.getBoundingClientRect().width < 500 ? 2 : 3)
+            bounds: boundsAustralia
           });
           map.on("load", function() {
             // add navigation and custom attribution
-            map.addControl(new mapboxgl.AttributionControl({
-                compact: true,
-                customAttribution: "ACT Health, NSW Health, ABS (LGA boundaries)"
-              }))
+            map.addControl(new mapboxgl.NavigationControl())
+              .addControl(new mapboxgl.AttributionControl({ compact: true }))
               .addSource("lgaSource", {
                 type: "geojson",
-                data: lgaData
+                data: mapData
               })
               .addLayer({
-                id: "lga",
+                id: "lgaLayers",
                 type: "fill-extrusion",
                 source: "lgaSource",
                 paint: {
-                  "fill-extrusion-color": "blue",
-                  "fill-extrusion-height": ["get", "height"]
+                  "fill-extrusion-color": ["get", "colour"],
+                  "fill-extrusion-opacity": .75,
+                  "fill-extrusion-height": ["get", "height"],
                 }
               });
             // fade in
@@ -78,16 +78,44 @@
             // transition to LGAs
             d3.timeout(function() {
 
-              map.fitBounds(bounds, {
-                padding: {
-                    right: -100, left: -300
-                  },
-                pitch: 60,
-                bearing: 30,
-                duration: 3000,
+              map.fitBounds(boundsMap, {
+                padding: (
+                  document.body.getBoundingClientRect().width < 5000 ?
+                  { right: 100, left: 100 } :
+                  { right: 300, left: 300 }
+                ),
+                pitch: 45,
+                bearing: -15,
+                duration: 2500,
                 essential: true
               });
             }, 1000);
+
+            // test transitions
+            d3.timeout(function() {
+              let i = 0;
+              cycle = d3.interval(function() {
+                mapData.features = lgaData
+                  .features
+                  .map(function(d) {
+                    return {
+                      type: "Feature",
+                      geometry: d.geometry,
+                      properties: {
+                        height: d.properties.heights[i],
+                        colour: d.properties.colours[i]
+                      }
+                    };
+                  })
+                  .filter(function(d) {
+                    return d.properties.colour !== 0;
+                  });
+                map.getSource("lgaSource")
+                  .setData(mapData);
+                i = i + 1;
+                if (i > lgaData.features[0].properties.heights.length - 1) cycle.stop();
+              }, 50);
+            }, 3500);
           });
         });
     </script>
