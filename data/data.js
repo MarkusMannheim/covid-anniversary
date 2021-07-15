@@ -63,7 +63,7 @@ fs.readFile("./areas.geojson", "utf8", function(error, data) {
     });
 
     heightRange = d3.scaleLinear()
-      .range([0, 100000])
+      .range([0, 150000])
       .domain([0, d3.max(finalData.features, function(d) {
         return d3.max(d.properties.data);
       })]);
@@ -72,11 +72,9 @@ fs.readFile("./areas.geojson", "utf8", function(error, data) {
     //   .domain(d3.range(0, 10).map(function(d) { return d * heightRange.domain()[1] / 9; }));
 
     abcColours = ["#EAF2DC", "#BFECCF", "#9BDED3", "#7ACFD4", "#5EC0CE", "#3FB2C6", "#23A3BC", "#188CAD", "#0E75A0", "#085B96", "#02408D", "#002775", "#00104B"];
-    colourRange = d3.scaleThreshold()
+    colourRange = d3.scaleQuantize()
       .range(abcColours)
-      .domain(abcColours.map(function(d, i) {
-        return i / (abcColours.length - 1) * heightRange.domain()[1];
-      }));
+      .domain(heightRange.domain());
 
     mapData = {
       type: "FeatureCollection",
