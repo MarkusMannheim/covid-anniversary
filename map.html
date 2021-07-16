@@ -12,7 +12,7 @@
 
     <!-- my stuff -->
     <meta charset="utf-8">
-    <title>Canberra's COVID-19-free year</title>
+    <title>Sydney's COVID-19 spread</title>
     <meta name="author" content="Markus Mannheim">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -27,19 +27,57 @@
 
   <body>
     <div id="map"></div>
-    <div id="footer"></div>
+    <svg id="legend">
+      <defs>
+        <linearGradient id="legendGradient" x1="0%", x2="100%", y1="0%", y2="0%"></linearGradient>
+      </defs>
+      <rect height="20" x=10 y=20></rect>
+      <g id="axisGroup" transform="translate(10, 40)">
+        <text id="axisLabel" y=-25>recent cases</text>
+      </g>
+    </svg>
+    <div id="footer">'Recent' cases include locally acquired infections reported in the previous 14 days.
+      This map shows cases by local government area, up to July 10, 2021.
+      Sources: NSW Health, ACT Health (COVID-19 data), ABS (boundary data).</div>
+
     <script>
       // load LGA data
       d3.json("./data/lga.topojson?accessKey=" + Math.floor(Math.random()*9000) + 1000)
         .then(function(data) {
+          // data
           lgaData = topojson.feature(data, data.objects.areas);
           boundsAustralia = [[113.338953078, -43.6345972634], [153.569469029, -10.6681857235]];
-          boundsMap = [[148.76278998500004,-35.92076221499997], [151.63054702400007,-33.04371900799998]];
-
+          boundsMap = [[148.76278998500004, -35.92076221499997], [151.63054702400007, -33.04371900799998]];
+          boundsSydney = [[150.6283825316185, -34.09362982396596], [151.34239019481763,-33.57195607124768]];
           mapData = {
             type: "FeatureCollection",
             features: []
           };
+          startDate = new Date(2020, 00, 24);
+          currentDate = startDate;
+          colours = ["#EAF2DC", "#BFECCF", "#9BDED3", "#7ACFD4", "#5EC0CE", "#3FB2C6", "#23A3BC", "#188CAD", "#0E75A0", "#085B96", "#02408D", "#002775", "#00104B"];
+
+          // page elements
+          legend = d3.select("#legend");
+          footer = d3.select("#footer");
+          legendGradient = d3.select("#legendGradient");
+          axisGroup = d3.select("#axisGroup");
+          axisLabel = d3.select("#axisLabel");
+
+          // set up legend
+          colours.forEach(function(d, i) {
+            legendGradient.append("stop")
+              .attr("stop-color", d)
+              .attr("offset", (i / (colours.length - 1) * 100) + "%");
+          });
+          x = d3.scaleLinear()
+            .domain([0, 131]);
+          axis = d3.axisBottom(x)
+            .ticks(4)
+            .tickSizeOuter(0);
+
+          // resizer
+          window.addEventListener("resize", resize);
 
           // set up MapBox engine
           mapboxgl.accessToken = "pk.eyJ1IjoibmV3cy1vbjFpbmUiLCJhIjoiR3FlZFZlVSJ9._30EFE9XYhQitqf4gzRG-g";
@@ -52,10 +90,13 @@
             bearing: 0,
             bounds: boundsAustralia
           });
+
           map.on("load", function() {
             // add navigation and custom attribution
             map.addControl(new mapboxgl.NavigationControl())
-              .addControl(new mapboxgl.AttributionControl({ compact: true }))
+              .addControl(new mapboxgl.AttributionControl({
+                compact: true
+              }), "bottom-left")
               .addSource("lgaSource", {
                 type: "geojson",
                 data: mapData
@@ -70,8 +111,28 @@
                   "fill-extrusion-height": ["get", "height"],
                 }
               });
+
+            // set up clock
+            clockDiv = d3.select(".mapboxgl-ctrl-bottom-right")
+              .append("div")
+                .attr("id", "clockDiv");
+            clockFace = clockDiv
+              .append("svg")
+                .attr("id", "clockFace");
+            clockFace.append("path");
+            clockText = clockFace
+              .append("text")
+                .attr("id", "clockText")
+                .text(d3.timeFormat("%b '%y")(startDate));
+            arc = d3.arc()
+              .innerRadius(0)
+              .startAngle(0)
+              .endAngle(0);
+
+            resize();
+
             // fade in
-            d3.select("body")
+            d3.select("#map")
               .transition()
                 .duration(500)
                 .style("opacity", 1);
@@ -94,6 +155,7 @@
             // test transitions
             d3.timeout(function() {
               let i = 0;
+
               cycle = d3.interval(function() {
                 mapData.features = lgaData
                   .features
@@ -113,11 +175,30 @@
                 map.getSource("lgaSource")
                   .setData(mapData);
                 i = i + 1;
+                currentDate.setDate(currentDate.getDate() + 1);
+                arc.endAngle(Math.PI * 2 * i / (lgaData.features[0].properties.heights.length - 1));
+                clockFace.select("path").attr("d", arc);
+                clockText.text(d3.timeFormat("%b '%y")(startDate));
                 if (i > lgaData.features[0].properties.heights.length - 1) cycle.stop();
               }, 75);
+
             }, 3500);
           });
         });
+
+      function resize() {
+        dimensions = document.body.getBoundingClientRect();
+        chartWidth = dimensions.width;
+        legend.select("rect")
+          .attr("width", chartWidth - 20);
+        x.range([0, chartWidth - 20]);
+        axisGroup.call(axis);
+        axisLabel.attr("x", (chartWidth - 20) / 2);
+        clockDimensions = document.getElementById("clockDiv").getBoundingClientRect();
+        clockText.attr("x", clockDimensions.width / 2)
+          .attr("y", clockDimensions.height / 2);
+        arc.outerRadius(clockDimensions.width / 2);
+      }
     </script>
   </body>
 </html>
