@@ -1,5 +1,5 @@
-const d3 = import("d3"),
-      topojson = import("topojson"),
+const d3 = require("d3"),
+      topojson = require("topojson"),
       fs = require("fs");
 
 fs.readFile("./areas.geojson", "utf8", function(error, data) {
@@ -102,6 +102,28 @@ fs.readFile("./areas.geojson", "utf8", function(error, data) {
 
     fs.writeFile("./lga.topojson", JSON.stringify(topology), function(error) {
       console.log("lga.topojson written");
+    });
+
+    fs.readFile("./data_scatter.csv", "utf8", function(error, data) {
+      if (error) throw error;
+
+      scatterData = d3.csvParse(data);
+      plotData = [];
+      scatterData.forEach(function(d) {
+        let match = geoData.filter(function(e) {
+          return e.properties.code == d.code;
+        });
+        let location = null;
+        if (match.length == 1) {
+          location = d3.geoCentroid(match[0]);
+        }
+        d.location = location;
+        plotData.push(d);
+      });
+
+      fs.writeFile("./dataDistance.csv", d3.csvFormat(plotData), function(error) {
+        console.log("dataDistance.csv written");
+      });
     });
   });
 });
