@@ -1,6 +1,6 @@
-const d3 = require("d3"),
-      fs = require("fs"),
-      topojson = require("topojson");
+const d3 = import("d3"),
+      topojson = import("topojson"),
+      fs = require("fs");
 
 fs.readFile("./areas.geojson", "utf8", function(error, data) {
   if (error) throw error;
