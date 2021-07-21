@@ -1,5 +1,6 @@
 const d3 = require("d3"),
-      topojson = require("topojson"),
+      topoSimplify = require("topojson-simplify"),
+      topoServer = require("topojson-server"),
       fs = require("fs");
 
 fs.readFile("./areas.geojson", "utf8", function(error, data) {
@@ -89,16 +90,17 @@ fs.readFile("./areas.geojson", "utf8", function(error, data) {
         geometry: d.geometry,
         properties: {
           name: d.properties.name,
+          area: d.properties.area,
           heights: heights,
           colours: colours
         }
       });
     });
 
-    topology = topojson.topology({ areas: mapData });
-    topology = topojson.presimplify(topology);
-    topology = topojson.simplify(topology, 1e-5);
-    topology = topojson.quantize(topology, 1e4);
+    topology = topoServer.topology({ areas: mapData });
+    topology = topoSimplify.presimplify(topology);
+    topology = topoSimplify.simplify(topology, 1e-5);
+    // topology = topojson.quantize(topology, 1e4);
 
     fs.writeFile("./lga.topojson", JSON.stringify(topology), function(error) {
       console.log("lga.topojson written");
@@ -114,10 +116,13 @@ fs.readFile("./areas.geojson", "utf8", function(error, data) {
           return e.properties.code == d.code;
         });
         let location = null;
+        let area = null;
         if (match.length == 1) {
           location = d3.geoCentroid(match[0]);
+          area = match[0].properties.area;
         }
         d.location = location;
+        d.area = area;
         plotData.push(d);
       });
 

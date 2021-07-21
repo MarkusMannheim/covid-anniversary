@@ -37,8 +37,8 @@
       </g>
     </svg>
     <div id="footer">'Recent' cases include locally acquired infections reported in the previous 14 days.
-      This map shows cases by local government area, up to July 10, 2021.
-      Sources: NSW Health, ACT Health (COVID-19 data), ABS (boundary data).</div>
+      This map shows cases by local government area (to July 10, 2021).
+      Data sources: NSW Health, covidlive.com.au, ABS</div>
 
     <script>
       // load LGA data
@@ -53,7 +53,7 @@
             type: "FeatureCollection",
             features: []
           };
-          startDate = new Date(2020, 00, 24);
+          startDate = new Date(2020, 2, 2);
           currentDate = startDate;
           colours = ["#EAF2DC", "#BFECCF", "#9BDED3", "#7ACFD4", "#5EC0CE", "#3FB2C6", "#23A3BC", "#188CAD", "#0E75A0", "#085B96", "#02408D", "#002775", "#00104B"];
 
@@ -113,14 +113,13 @@
               });
 
             // set up clock
-            clockDiv = d3.select(".mapboxgl-ctrl-bottom-right")
-              .append("div")
-                .attr("id", "clockDiv");
-            clockFace = clockDiv
+            clock = d3.select(".mapboxgl-ctrl-bottom-right")
               .append("svg")
+                .attr("id", "clock");
+            clockFace = clock
+              .append("path")
                 .attr("id", "clockFace");
-            clockFace.append("path");
-            clockText = clockFace
+            clockText = clock
               .append("text")
                 .attr("id", "clockText")
                 .text(d3.timeFormat("%b '%y")(startDate));
@@ -132,7 +131,7 @@
             resize();
 
             // fade in
-            d3.select("#map")
+            d3.selectAll("#map, #legend")
               .transition()
                 .duration(500)
                 .style("opacity", 1);
@@ -177,7 +176,7 @@
                 i = i + 1;
                 currentDate.setDate(currentDate.getDate() + 1);
                 arc.endAngle(Math.PI * 2 * i / (lgaData.features[0].properties.heights.length - 1));
-                clockFace.select("path").attr("d", arc);
+                clockFace.attr("d", arc);
                 clockText.text(d3.timeFormat("%b '%y")(startDate));
                 if (i > lgaData.features[0].properties.heights.length - 1) cycle.stop();
               }, 75);
@@ -194,7 +193,7 @@
         x.range([0, chartWidth - 20]);
         axisGroup.call(axis);
         axisLabel.attr("x", (chartWidth - 20) / 2);
-        clockDimensions = document.getElementById("clockDiv").getBoundingClientRect();
+        clockDimensions = document.getElementById("clock").getBoundingClientRect();
         clockText.attr("x", clockDimensions.width / 2)
           .attr("y", clockDimensions.height / 2);
         arc.outerRadius(clockDimensions.width / 2);
