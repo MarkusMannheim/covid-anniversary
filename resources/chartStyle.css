@@ -1,0 +1,121 @@
+/* colours
+blue: #009CBF
+orange: #F75F00
+green: #00A388
+--tint-1: #333;
+--tint-2: #666;
+--tint-3: #999;
+--tint-4: #ccc;
+--tint-5: #e6e6e6;
+--tint-6: #f2f2f2;
+ */
+ @font-face {
+  font-family: "ABCSans Regular";
+  font-style: normal;
+  font-weight: normal;
+  src: local("ABCSans Regular"), url("./abcsans-regular.woff") format("woff");
+}
+@font-face {
+  font-family: "ABCSans Black";
+  font-style: normal;
+  font-weight: normal;
+  src: local("ABCSans Black"), url("./abcsans-black.woff") format("woff");
+}
+@font-face {
+  font-family: "ABCSans Light";
+  font-style: normal;
+  font-weight: normal;
+  src: local("ABCSans Light"), url("./abcsans-light.woff") format("woff");
+}
+:root {
+  font-size: 1em;
+  font-family: "ABCSans Regular", "Arial", sans-serif;
+  color: #1C1C1C;
+}
+body {
+  margin: 0;
+  position: fixed;
+  top: 0;
+  bottom: 0.5rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-flow: column;
+}
+#header {
+  font-family: "ABCSans Black", "Arial Black", sans-serif;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+#chart {
+  width: 100%;
+  height: 100%;
+  background: lightsteelblue;
+}
+#axisGroup .domain {
+  display: none;
+}
+#axisGroup text {
+  fill: #333;
+  font-size: .7rem;
+}
+#axisGroup #axisLabel {
+  font-size: .8rem;
+}
+#axisGroup #axisLabel tspan:first-child {
+  font-weight: bold;
+}
+#legend {
+  margin: 0.5rem 0;
+  display: flex;
+  font-size: .9rem;
+}
+#legend .key {
+  display: flex;
+  margin-left: 0.5rem;
+}
+#legend .key:first-child {
+  margin-left: 0;
+}
+#legend .marker {
+  height: .95rem;
+  width: .95rem;
+  border-radius: 50%;
+  margin: 0 .25rem;
+}
+#legend .key:first-child .marker {
+  margin-left: 0;
+}
+#legend .markerLabel {
+  line-height: .95rem;
+}
+.act {
+  background: #009CBF;
+}
+.syd {
+  background: #F75F00;
+}
+.reg {
+  background: #00A388;
+}
+#footer {
+  color: #666;
+  font-size: .8rem;
+}
+@media only screen and (max-width: 500px) {
+  #legend {
+    flex-flow: column;
+  }
+  #legend .key {
+    margin: 0.25rem 0 0 0;
+  }
+  #legend .marker {
+    margin-left: 0;
+  }
+  #axisGroup text {
+    font-size: .65rem;
+  }
+  #footer {
+    font-size: .75rem;
+  }
+}

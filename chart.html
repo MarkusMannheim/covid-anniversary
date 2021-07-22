@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-155991615-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag("js", new Date());
+      gtag("config", "UA-155991615-1");
+    </script>
+
+    <!-- my stuff -->
+    <meta charset="utf-8">
+    <title>COVID-19 in NSW and the ACT</title>
+    <meta name="author" content="Markus Mannheim">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- initial scripts -->
+    <script src="./resources/d3.v6.min.js"></script>
+    <link href="./resources/chartStyle.css" rel="stylesheet">
+    <link href="./resources/abcLogo64.png" rel="icon">
+  </head>
+
+  <body>
+    <div id="header">Infections by population</div>
+    <svg id="chart">
+      <g id="axisGroup" class="axis">
+        <g id="xAxisGroup">
+          <text class="axisLabel"></text>
+        </g>
+        <g id="xAxisGroup" class="axis">
+          <text class="axisLabel"></text>
+        </g>
+      </g>
+    </svg>
+    <div id="legend">
+      <div class="key">
+        <div class="marker act"></div>
+        <div class="markerLabel">ACT</div>
+      </div>
+      <div class="key">
+        <div class="marker syd"></div>
+        <div class="markerLabel">Greater Sydney and surrounds</div>
+      </div>
+      <div class="key">
+        <div class="marker reg"></div>
+        <div class="markerLabel">regional NSW</div>
+      </div>
+    </div>
+    <div id="footer">Cases include all locally acquired infections reported in the local government area as of July 20, 2021.
+      Data sources: NSW Health, covidlive.com.au, ABS, OpenStreetMap</div>
+
+    <script>
+      // load LGA data
+      d3.csv("./data/data_simple.csv?accessKey=" + Math.floor(Math.random()*9000) + 1000)
+        .then(function(data) {
+          // data
+          lgaData = data
+            .map(function(d) {
+              for (i = 1; i < 5; i++) {
+                d[data.columns[i]] = +d[data.columns[i]];
+              };
+              return d;
+            });
+
+          colours = ["#EAF2DC", "#BFECCF", "#9BDED3", "#7ACFD4", "#5EC0CE", "#3FB2C6", "#23A3BC", "#188CAD", "#0E75A0", "#085B96", "#02408D", "#002775", "#00104B"];
+
+          // page elements
+          buttons = d3.select("#buttons");
+          chart = d3.select("#chart");
+          legend = d3.select("#legend");
+          footer = d3.select("#footer");
+          legendGradient = d3.select("#legendGradient");
+          axisGroup = d3.select("#axisGroup");
+          axisLabel = d3.select("#axisLabel");
+
+          // set up legend
+          // colours.forEach(function(d, i) {
+          //   legendGradient.append("stop")
+          //     .attr("stop-color", d)
+          //     .attr("offset", (i / (colours.length - 1) * 100) + "%");
+          // });
+          // x = d3.scaleSqrt()
+          //   .domain([0, 590]);
+          // axis = d3.axisBottom(x)
+          //   .tickValues([10, 100, 300, 500])
+          //   .tickSizeOuter(0);
+
+          // resizer
+          window.addEventListener("resize", resize);
+
+            resize();
+
+          // fade in
+          d3.selectAll("#map, #legend")
+            .transition()
+              .duration(500)
+              .style("opacity", 1);
+
+        });
+
+      function resize() {
+        dimensions = document.body.getBoundingClientRect();
+        chartWidth = dimensions.width;
+      }
+    </script>
+  </body>
+</html>
