@@ -1,6 +1,7 @@
 const d3 = require("d3"),
       topoSimplify = require("topojson-simplify"),
       topoServer = require("topojson-server"),
+      topoClient = require("topojson-client"),
       fs = require("fs");
 
 fs.readFile("./areas.geojson", "utf8", function(error, data) {
@@ -63,11 +64,13 @@ fs.readFile("./areas.geojson", "utf8", function(error, data) {
       }
     });
 
-    heightRange = d3.scaleLinear()
-      .range([0, 150000])
+    heightRange = d3.scaleSqrt()
+      .range([0, 300000])
       .domain([0, d3.max(finalData.features, function(d) {
         return d3.max(d.properties.data);
       })]);
+
+    console.log(heightRange.domain());
 
     // colourRange = d3.scaleThreshold(d3.schemeReds[9])
     //   .domain(d3.range(0, 10).map(function(d) { return d * heightRange.domain()[1] / 9; }));
@@ -75,7 +78,7 @@ fs.readFile("./areas.geojson", "utf8", function(error, data) {
     abcColours = ["#EAF2DC", "#BFECCF", "#9BDED3", "#7ACFD4", "#5EC0CE", "#3FB2C6", "#23A3BC", "#188CAD", "#0E75A0", "#085B96", "#02408D", "#002775", "#00104B"];
     colourRange = d3.scaleQuantize()
       .range(abcColours)
-      .domain(heightRange.domain());
+      .domain(heightRange.range());
 
     mapData = {
       type: "FeatureCollection",
@@ -84,51 +87,36 @@ fs.readFile("./areas.geojson", "utf8", function(error, data) {
 
     finalData.features.map(function(d) {
       let heights = d.properties.data.map(function(e) { return Math.round(heightRange(e)); });
-      let colours = d.properties.data.map(function(e) { return (e == 0) ? 0 : colourRange(e); });
+      let colours = d.properties.data.map(function(e) { return (e == 0) ? 0 : colourRange(heightRange(e)); });
       mapData.features.push({
         type: "Feature",
         geometry: d.geometry,
         properties: {
-          name: d.properties.name,
-          area: d.properties.area,
+          // name: d.properties.name,
+          // area: d.properties.area,
           heights: heights,
           colours: colours
         }
       });
     });
 
-    topology = topoServer.topology({ areas: mapData });
-    topology = topoSimplify.presimplify(topology);
-    topology = topoSimplify.simplify(topology, 1e-5);
-    // topology = topojson.quantize(topology, 1e4);
+    // topology = topoServer.topology({ areas: mapData });
+    // topology = topoSimplify.presimplify(topology);
+    // topology = topoSimplify.simplify(topology, 1e-3);
+    // topology = topoClient.quantize(topology, 1e4);
 
-    fs.writeFile("./lga.topojson", JSON.stringify(topology), function(error) {
-      console.log("lga.topojson written");
+    fs.writeFile("./lga.geojson", JSON.stringify(mapData), function(error) {
+      console.log("lga.geojson written");
     });
 
-    fs.readFile("./data_scatter.csv", "utf8", function(error, data) {
-      if (error) throw error;
+    distanceData = [];
+    geoData.forEach(function(d) {
+      d.properties.location = d3.geoCentroid(d);
+      distanceData.push(d.properties);
+    });
 
-      scatterData = d3.csvParse(data);
-      plotData = [];
-      scatterData.forEach(function(d) {
-        let match = geoData.filter(function(e) {
-          return e.properties.code == d.code;
-        });
-        let location = null;
-        let area = null;
-        if (match.length == 1) {
-          location = d3.geoCentroid(match[0]);
-          area = match[0].properties.area;
-        }
-        d.location = location;
-        d.area = area;
-        plotData.push(d);
-      });
-
-      fs.writeFile("./dataDistance.csv", d3.csvFormat(plotData), function(error) {
-        console.log("dataDistance.csv written");
-      });
+    fs.writeFile("./dataDistance.csv", d3.csvFormat(distanceData), function(error) {
+      console.log("dataDistance.csv written");
     });
   });
 });

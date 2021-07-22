@@ -21,7 +21,7 @@
     <script src="./resources/topojson.v3.min.js"></script>
     <script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.js"></script>
     <link href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.3.1/mapbox-gl.css" rel="stylesheet">
-    <link href="./resources/style.css" rel="stylesheet">
+    <link href="./resources/mapStyle.css" rel="stylesheet">
     <link href="./resources/abcLogo64.png" rel="icon">
   </head>
 
@@ -33,11 +33,14 @@
       </defs>
       <rect height="20" x=10 y=20></rect>
       <g id="axisGroup" transform="translate(10, 40)">
-        <text id="axisLabel" y=-25>recent cases</text>
+        <text id="axisLabel" y=-25>
+          <tspan>recent cases </tspan>
+          <tspan>(adjusted scale)</tspan>
+          </text>
       </g>
     </svg>
     <div id="footer">'Recent' cases include locally acquired infections reported in the previous 14 days.
-      This map shows cases by local government area (to July 10, 2021).
+      This map shows cases by local government area (to July 20, 2021).
       Data sources: NSW Health, covidlive.com.au, ABS</div>
 
     <script>
@@ -53,8 +56,6 @@
             type: "FeatureCollection",
             features: []
           };
-          startDate = new Date(2020, 2, 2);
-          currentDate = startDate;
           colours = ["#EAF2DC", "#BFECCF", "#9BDED3", "#7ACFD4", "#5EC0CE", "#3FB2C6", "#23A3BC", "#188CAD", "#0E75A0", "#085B96", "#02408D", "#002775", "#00104B"];
 
           // page elements
@@ -70,10 +71,10 @@
               .attr("stop-color", d)
               .attr("offset", (i / (colours.length - 1) * 100) + "%");
           });
-          x = d3.scaleLinear()
-            .domain([0, 131]);
+          x = d3.scaleSqrt()
+            .domain([0, 590]);
           axis = d3.axisBottom(x)
-            .ticks(4)
+            .tickValues([10, 100, 300, 500])
             .tickSizeOuter(0);
 
           // resizer
@@ -108,6 +109,9 @@
                 paint: {
                   "fill-extrusion-color": ["get", "colour"],
                   "fill-extrusion-opacity": .75,
+                  "fill-extrusion-opacity-transition": {
+                    duration: 2000
+                  },
                   "fill-extrusion-height": ["get", "height"],
                 }
               });
@@ -122,7 +126,7 @@
             clockText = clock
               .append("text")
                 .attr("id", "clockText")
-                .text(d3.timeFormat("%b '%y")(startDate));
+                .text(d3.timeFormat("%b '%y")(new Date(2020, 2, 2)));
             arc = d3.arc()
               .innerRadius(0)
               .startAngle(0)
@@ -151,39 +155,66 @@
               });
             }, 1000);
 
-            // test transitions
+            // cycle through pandemic
+
             d3.timeout(function() {
-              let i = 0;
-
-              cycle = d3.interval(function() {
-                mapData.features = lgaData
-                  .features
-                  .map(function(d) {
-                    return {
-                      type: "Feature",
-                      geometry: d.geometry,
-                      properties: {
-                        height: d.properties.heights[i],
-                        colour: d.properties.colours[i]
-                      }
-                    };
-                  })
-                  .filter(function(d) {
-                    return d.properties.colour !== 0;
-                  });
-                map.getSource("lgaSource")
-                  .setData(mapData);
-                i = i + 1;
-                currentDate.setDate(currentDate.getDate() + 1);
-                arc.endAngle(Math.PI * 2 * i / (lgaData.features[0].properties.heights.length - 1));
-                clockFace.attr("d", arc);
-                clockText.text(d3.timeFormat("%b '%y")(startDate));
-                if (i > lgaData.features[0].properties.heights.length - 1) cycle.stop();
-              }, 75);
-
-            }, 3500);
+              startCycle();
+            }, 4000);
           });
         });
+
+      function startCycle() {
+        i = 0;
+        cycle = d3.interval(function() {
+          mapData.features = lgaData
+            .features
+            .map(function(d) {
+              return {
+                type: "Feature",
+                geometry: d.geometry,
+                properties: {
+                  height: d.properties.heights[i],
+                  colour: d.properties.colours[i]
+                }
+              };
+            })
+            .filter(function(d) {
+              return d.properties.colour !== 0;
+            });
+          map.getSource("lgaSource")
+            .setData(mapData);
+          arc.endAngle(Math.PI * 2 * i / (lgaData.features[0].properties.heights.length - 1));
+          clockFace.attr("d", arc);
+          clockText.text(d3.timeFormat("%b '%y")(new Date(2020, 2, 2).setDate(new Date(2020, 2, 2).getDate() + i)));
+          i = i + 1;
+          if (i > lgaData.features[0].properties.heights.length - 1) resetCycle();
+        }, 50);
+      }
+
+      function resetCycle() {
+        cycle.stop();
+        d3.timeout(function() {
+          map.setPaintProperty("lgaLayers", "fill-extrusion-opacity", 0);
+          clockText.transition()
+            .duration(2000)
+            .textTween(function() {
+              let j = d3.interpolate(i, 0);
+              return function(t) {
+                return d3.timeFormat("%b '%y")(new Date(2020, 2, 2).setDate(new Date(2020, 2, 2).getDate() + j(t)));
+              };
+            });
+
+          d3.timeout(function() {
+            mapData.features = [];
+            map.getSource("lgaSource")
+              .setData(mapData);
+            map.setPaintProperty("lgaLayers", "fill-extrusion-opacity", .75);
+            d3.timeout(function(d) {
+              startCycle();
+            }, 1000);
+          }, 2000);
+        }, 2000);
+      }
 
       function resize() {
         dimensions = document.body.getBoundingClientRect();
