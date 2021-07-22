@@ -40,7 +40,7 @@
       </g>
     </svg>
     <div id="footer">'Recent' cases include locally acquired infections reported in the previous 14 days.
-      This map shows cases by local government area (to July 20, 2021).
+      This map shows cases by local government area (to July 21, 2021).
       Data sources: NSW Health, covidlive.com.au, ABS</div>
 
     <script>
@@ -48,6 +48,7 @@
       d3.json("./data/lga.topojson?accessKey=" + Math.floor(Math.random()*9000) + 1000)
         .then(function(data) {
           // data
+          console.log(data);
           lgaData = topojson.feature(data, data.objects.areas);
           boundsAustralia = [[113.338953078, -43.6345972634], [153.569469029, -10.6681857235]];
           boundsMap = [[148.76278998500004, -35.92076221499997], [151.63054702400007, -33.04371900799998]];
@@ -72,7 +73,7 @@
               .attr("offset", (i / (colours.length - 1) * 100) + "%");
           });
           x = d3.scaleSqrt()
-            .domain([0, 590]);
+            .domain([0, 611]);
           axis = d3.axisBottom(x)
             .tickValues([10, 100, 300, 500])
             .tickSizeOuter(0);
