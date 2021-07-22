@@ -44,78 +44,129 @@ body {
 }
 #header {
   font-family: "ABCSans Black", "Arial Black", sans-serif;
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
 }
 #chart {
   width: 100%;
   height: 100%;
-  background: lightsteelblue;
+  opacity: 0;
 }
-#axisGroup .domain {
+.axis .domain {
   display: none;
 }
-#axisGroup text {
+.axis .tick line {
+  stroke: #666;
+  stroke-width: 0.5;
+  stroke-dasharray: 2 2;
+}
+.axis text {
   fill: #333;
   font-size: .7rem;
 }
-#axisGroup #axisLabel {
+.axis .axisLabel {
   font-size: .8rem;
-}
-#axisGroup #axisLabel tspan:first-child {
   font-weight: bold;
 }
+#yAxisGroup .axisLabel {
+  text-anchor: start;
+}
+.axisLabel tspan:last-child {
+  font-weight: normal;
+}
 #legend {
-  margin: 0.5rem 0;
+  margin-top: 0.75rem;
   display: flex;
+  justify-content: center;
   font-size: .9rem;
 }
-#legend .key {
+.key {
   display: flex;
   margin-left: 0.5rem;
 }
-#legend .key:first-child {
+.key:first-child {
   margin-left: 0;
 }
-#legend .marker {
-  height: .95rem;
-  width: .95rem;
+.marker {
+  height: .75rem;
+  width: .75rem;
   border-radius: 50%;
+  border: solid #333 0.5px;
   margin: 0 .25rem;
 }
-#legend .key:first-child .marker {
+.key:first-child .marker {
   margin-left: 0;
 }
-#legend .markerLabel {
-  line-height: .95rem;
+.markerLabel {
+  line-height: .75rem;
 }
-.act {
+.marker.act {
   background: #009CBF;
 }
-.syd {
+.marker.syd {
   background: #F75F00;
 }
-.reg {
+.marker.reg {
   background: #00A388;
 }
-#footer {
-  color: #666;
-  font-size: .8rem;
+.circle {
+  opacity: .5;
+  stroke: #333;
+  stroke-width: 0.5;
+  pointer-events: none;
+}
+.area.selected .circle {
+  opacity: 1;
+}
+.act .circle {
+  fill: #009CBF;
+}
+.syd .circle {
+  fill: #F75F00;
+}
+.reg .circle {
+  fill: #00A388;
+}
+.cell {
+  fill: rgba(0, 0, 0, 0);
+}
+#tip {
+  position: absolute;
+  background: #666;
+  padding: 2px 5px;
+  border-box: 2px 2px 5px #333;
+  border-radius: 5px;
+  color: white;
+  font-size: .7rem;
+  font-weight: bold;
+  opacity: 0;
+  pointer-events: none;
 }
 @media only screen and (max-width: 500px) {
   #legend {
     flex-flow: column;
+    align-items: center;
+    font-size: .8rem;
   }
-  #legend .key {
+  .key {
     margin: 0.25rem 0 0 0;
   }
-  #legend .marker {
+  .marker {
     margin-left: 0;
+    height: .5rem;
+    width: .5rem;
   }
-  #axisGroup text {
+  #header {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .axis text {
     font-size: .65rem;
   }
-  #footer {
+  .axis .axisLabel {
     font-size: .75rem;
+  }
+  .markerLabel {
+    line-height: .75rem;
   }
 }
